@@ -215,6 +215,8 @@ func process_svg_xml_tree(xml_data : SVGXMLElement, scene_root : Node, svg_root 
 		"clipPath", "defs":
 			current_node = process_group(xml_data, current_node, scene_root, xml_data.name)
 			current_node.hide()
+		"line":
+			process_svg_line(xml_data, current_node, scene_root, svg_gradients)
 		"rect":
 			process_svg_rectangle(xml_data, current_node, scene_root, svg_gradients)
 		"image":
@@ -953,3 +955,22 @@ func _on_open_file_dialog_button_pressed() -> void:
 
 func _on_use_line_2d_check_box_toggled(toggled_on: bool) -> void:
 	import_stroke_as_line_2d = toggled_on
+
+# 添加新函数用于处理line标签
+func process_svg_line(element:SVGXMLElement, current_node : Node2D, scene_root : Node,
+		gradients : Array[Dictionary]) -> void:
+	var x1 = float(element.get_named_attribute_value("x1"))
+	var y1 = float(element.get_named_attribute_value("y1"))
+	var x2 = float(element.get_named_attribute_value("x2"))
+	var y2 = float(element.get_named_attribute_value("y2"))
+	
+	# 创建一个2点的curve
+	var curve = Curve2D.new()
+	curve.add_point(Vector2(x1, y1))
+	curve.add_point(Vector2(x2, y2))
+	
+	var path_name = element.get_named_attribute_value("id") if element.has_attribute("id") else "Line"
+	
+	# 使用现有的path创建函数来生成line
+	create_path2d(path_name, current_node, curve, [], get_svg_transform(element),
+			element.get_merged_styles(log_message), scene_root, gradients, false)
